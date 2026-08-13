@@ -18,7 +18,7 @@ pipeline, recording the prediction after every trick.
 | **Core difficulty** | gamma is not unique (shales repeat), and there is only one anchor, at the heel |
 | **Failure mode** | "cycle-skip": the path latches onto a wrong repeated marker and stays 10 to 50 ft off forever |
 
-![The problem](assets/fig01_problem.png)
+![The problem](fig01_problem.png)
 
 **Intuition for the whole approach:** you are reading a book in the dark with one page of it lit.
 The typewell is the book (which gamma value belongs at which depth). The lateral's gamma log is the
@@ -79,7 +79,7 @@ That is the **elevation of the rock surface itself**, a gently dipping geologica
 straight runs. We want a model whose hidden state is piecewise constant, and geology gives that.
 Steering does not.
 
-![geo vs TVT](assets/fig02_geo.png)
+![geo vs TVT](fig02_geo.png)
 
 **Proof (panel c).** Fit the *same* 8-segment piecewise-linear model to either coordinate, convert back,
 score in TVT. Making geo linear: median **0.86 ft**. Making TVT linear: **1.64 ft**. geo wins on **91%**
@@ -103,7 +103,7 @@ $$\mathcal{S} = \underset{\mathrm{emission}}{-\sum_{t} \left[ w_L \rho_C\!\left(
 `GR_hat = f_tw(geo - Z)` is the gamma the typewell predicts at the depth this path claims.
 17 slope classes, 6 duration classes, segment starts every 15 rows, beam of 20, numba kernel.
 
-![The decoder](assets/fig03_decoder.png)
+![The decoder](fig03_decoder.png)
 
 ---
 
@@ -119,7 +119,7 @@ Sigma is not tuned. It is estimated **per well** from the heel as
 `std(GR_known - typewell_GR(TVT_known))`, clipped to [19.785, 47.3] API: literally "how much does this
 well agree with its typewell where we can check".
 
-![The emission](assets/fig04_emission.png)
+![The emission](fig04_emission.png)
 
 **Panel b is the whole competition.** Take a real well's *true* depth track, shift it by a constant,
 plot the emission. If gamma identified depth there would be one sharp minimum at zero. Instead the curve
@@ -152,7 +152,7 @@ to jump to a wrong marker just because the gamma slightly prefers it.
 emission is non-unique, the prior does double duty as a regulariser against that ambiguity. Tightening
 rho and rescaling sigma moved a 100-well holdout from 9.43 to 8.29 mean RMSE, p90 20.2 to 17.2.
 
-![The priors](assets/fig05_prior.png)
+![The priors](fig05_prior.png)
 
 **99.8% of true 200-ft geo slopes have |s| < 0.10.** The grid still runs to 0.22 for the few genuinely
 steep wells, and that extra width is exactly the escape route a cycle-skip uses.
@@ -185,7 +185,7 @@ $$GR^{ref}(\tau) = 0.5 \cdot \mathrm{median}\{GR_t : t \in \mathrm{known},\ \mat
 
 Applied only in the TVT bins the heel actually reaches. Leak-free, since the heel's TVT is given.
 
-![TW_BLEND](assets/fig06_twblend.png)
+![TW_BLEND](fig06_twblend.png)
 
 **Worth +1.45 ft if removed:** the second-largest term inside the decoder after gamma level itself.
 
@@ -209,7 +209,7 @@ Three properties, all needed:
 
 Plus or minus 5 ft at the heel, plus or minus 45 ft five thousand feet out.
 
-![The funnel](assets/fig07_funnel.png)
+![The funnel](fig07_funnel.png)
 
 ---
 
@@ -247,7 +247,7 @@ score. So decode it both ways and keep the version that does not have to fight.
 try to predict which case you have from side-information. Run both arms and let the data referee. A
 wrong funnel centre forces the decode to fight the gamma, and that fight is measurable.
 
-![The follow-gate](assets/fig08_followgate.png)
+![The follow-gate](fig08_followgate.png)
 
 It flips **24 of 773 wells** and costs +0.069 ft against always-following, so it is roughly free
 insurance. Honest accounting: 17 flips win, 7 lose, and one well (`f6d009f4`, 16.2 to 49.4 ft if
@@ -271,7 +271,7 @@ The **anchor** is the one channel carrying absolute depth. Training wells have k
 `geo = TVT + Z` is known at their coordinates, and the rock surface is smooth in (X, Y). A local
 ridge-regularised plane fit over the 90 nearest training points predicts our geo, with no gamma involved.
 
-![The structural anchor](assets/fig09_anchor.png)
+![The structural anchor](fig09_anchor.png)
 
 **The elegance is in S2.** A well that is already correct fits *its own* gamma best by construction, so
 nothing can pass S2. Good wells are protected for free, with no gate to tune and no classifier to
@@ -293,7 +293,7 @@ Two extra decode variants offered to the same S1 and S2 gate:
 | bounded-slope | slope grid clipped to abs(s) <= 0.08 | removes the escape route a cycle-skip needs |
 | segment-NCC | rewards shape correlation of each segment's detrended gamma | a wrong marker matches level, not local shape |
 
-![The rescues](assets/fig10_rescue.png)
+![The rescues](fig10_rescue.png)
 
 **Why gated, not global.** Blanket-tightening the slope grid costs **+1.5 ft per good well**, because
 good wells need transient slope freedom to course-correct. The blanket NCC term costs +0.14 ft pooled.
@@ -328,7 +328,7 @@ $$\mathrm{Var}(\hat p) = \sum_{j,k} w_j w_k \rho_{jk} \sigma_j \sigma_k$$
 All the gain is in the off-diagonal, so members must fail **independently**. Each trusts a different
 feature: level, shape, slope bound. Measured error correlations: **0.59 to 0.78**.
 
-![The canceller](assets/fig11_canceller.png)
+![The canceller](fig11_canceller.png)
 
 **Panel c is the point.** Alone the members score 9.72, 11.27, 9.79, 10.69, 9.64 ft pooled, every one
 *worse* than the consensus. Their weighted average scores **9.01**. Two members are individually
@@ -345,7 +345,7 @@ correction is allowed to shout. It is a seatbelt, not a driver.
 
 $$p^{capped}_t = p^{pre}_t + \mathrm{clip}(p^{mix}_t - p^{pre}_t,\ -10,\ +10)$$
 
-![The trust region](assets/fig12_canccap.png)
+![The trust region](fig12_canccap.png)
 
 **Why a bound and not a learned gate.** Three independent signal families were tested for "will this
 stage hurt this well": decode byproducts AUC 0.54 to 0.61, neighbour geo-anchor 0.540, within-well
@@ -361,7 +361,7 @@ Two more guards ride on top:
 
 The skip-gate signal is interpretable: big MAX move plus small MEAN move means one segment jumped, so revert.
 
-![The guards](assets/fig16_guards.png)
+![The guards](fig16_guards.png)
 
 ---
 
@@ -375,7 +375,7 @@ keeps the bend and forgets the wiggle. The raw path carries beam jitter, which i
 slow whole-well drift, which a low-order polynomial captures exactly. Robust is essential, since a plain
 polyfit gets dragged by a cycle-skipped section.
 
-![The projection](assets/fig13_projection.png)
+![The projection](fig13_projection.png)
 
 Tiny (-0.049 ft) but a Pareto win: it improves good, medium and bad strata, interacts with nothing, and
 costs one polyfit.
@@ -411,7 +411,7 @@ $$\hat p_t = (1-w_t)\cdot \mathrm{median}_k p^{(k)}_t + w_t \cdot \mathrm{blend}
 Where the four decodes agree, take their **median**, a selector that returns a real member's depth and
 never an average across two incompatible modes. Where they disagree, lean on the enhanced reference.
 
-![The family typewell](assets/fig14_family.png)
+![The family typewell](fig14_family.png)
 
 **Worth -0.81 ft true effect, -2.18 ft on the hard tier.**
 
@@ -438,7 +438,7 @@ The other throws away the brightness and contrast of both gamma logs and reads o
 
 Same idea as the canceller, using only per-well information so transfer cannot fail.
 
-![diponly and znorm](assets/fig15_dip_znorm.png)
+![diponly and znorm](fig15_dip_znorm.png)
 
 | trick | what | weight | why it is safe |
 |---|---|---|---|
@@ -464,7 +464,7 @@ Blend in a completely different model: a LightGBM stack on particle-filter featu
 the decoder's output. Per-well RMSE correlation with the decoder is **0.57**, the most independent view
 available, so it removes error the internal canceller structurally cannot.
 
-![track8](assets/fig17_track8.png)
+![track8](fig17_track8.png)
 
 $$P_{hurt} = \mathrm{sigmoid}(0.7734 + 0.0776 \delta_{fam} - 0.3042 \delta_{dip} - 0.6026 \delta_{zn})$$
 $$w_8 = \frac{0.45}{1 + \exp((P_{hurt} - 0.60)/0.03)}, \qquad \hat p^{final} = (1-w_8)\hat p + w_8 p_{track8}$$
@@ -495,7 +495,7 @@ Always check whether part of your test set is simply given to you.
 
 ## Results
 
-![The waterfall](assets/fig18_waterfall.png)
+![The waterfall](fig18_waterfall.png)
 
 | stage | pooled RMSE | delta |
 |---|---|---|
@@ -518,7 +518,7 @@ Always check whether part of your test set is simply given to you.
 
 ### Sequential deltas lie. The factorial does not.
 
-![Synergy](assets/fig19_synergy.png)
+![Synergy](fig19_synergy.png)
 
 | trick | true effect | sequential | ratio |
 |---|---|---|---|
@@ -536,7 +536,7 @@ Always check whether part of your test set is simply given to you.
 3. **family is redundant with everything it meets** (worst overlap +0.235 with track8). Judge any new
    view by its interaction with track8, and be sceptical of anything overlapping family's territory.
 
-![Where](assets/fig20_where.png)
+![Where](fig20_where.png)
 
 Error grows away from the heel, the only anchor, and the pipeline shaves a roughly constant 30% at every
 distance. Across 773 wells it helps 511, hurts 227, leaves 35 unchanged. The wells it hurts are easy
@@ -622,6 +622,22 @@ neighbour surface collapses under spatial CV, and locating a knot does not tell 
 
 ---
 
+## How not to fool yourself
+
+The most valuable thing I built was the harness, not a model.
+
+| rule | why |
+|---|---|
+| decode **all 773** training wells as hidden, through the real code | verified bit-identical to production, max diff 0.0 ft |
+| the public LB **cannot select levers** | at about 52 public wells, a 0.09 ft lever shows the wrong sign 22 to 24% of the time |
+| spatial blocking, always | random CV is a lie here, since neighbouring wells share rock |
+| drop-best-k before believing anything | repeatedly a "finding" turned out to be 1 to 3 wells |
+| refit corrections against the model's **own output**, never truth | classifying by the model's own RMSE then fixing the bad ones is regression to the mean in a costume |
+| benchmark on the **final** ensemble | one lever measured -4.1% on an intermediate and +0.063 ft on the real final |
+| order-free effects, not just waterfalls | the sequential table mis-ranks znorm by 8x |
+
+---
+
 ## Five sentences
 
 1. Pick the coordinate the physics is simple in. `geo = TVT + Z` is worth more than any model choice after it.
@@ -631,7 +647,3 @@ neighbour surface collapses under spatial CV, and locating a knot does not tell 
 5. When you cannot predict whether a correction will hurt, bound how much it can.
 
 *Figures regenerate with `python3 writeup/figs_a.py && python3 writeup/figs_b.py`.*
-
----
-
-**Note:** the image references above (`assets/fig01_problem.png` … `fig20_where.png`) are relative paths to figures that live alongside this file in the original project folder. Only `SOLUTION.md` and the final solution file (`5point21.py`) were pushed to this repo. The fully rendered writeup with all 20 figures inline is on the Kaggle solution writeup.
